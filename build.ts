@@ -54,10 +54,12 @@ if (process.argv.slice(2).some(arg => arg === "--target" || arg.startsWith("--ta
   );
 args.push("--prefix", nativeRoot);
 const sysroot = option("sysroot", process.env.CORGI_PROBE_SYSROOT ?? "");
-if (sysroot) args.push("--sysroot", sysroot);
+if (sysroot) args.push("--sysroot", sysroot, `-Dsysroot=${sysroot}`);
 if (!process.argv.includes("--no-native")) {
   const native = Bun.spawn(args, { stdout: "inherit", stderr: "inherit" });
-  if (await native.exited) throw Error("Native build failed");
+  // Zig has already said why.
+  const status = await native.exited;
+  if (status) process.exit(status);
 }
 if (process.argv.includes("--native-only")) process.exit(0);
 mkdirSync(`${root}/dist`, { recursive: true });
